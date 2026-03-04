@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa Retirement Calculator</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #1c1e21;
+            --accent: #2563eb;
+            --secondary-text: #606770;
+            --border: #dddfe2;
+            --highlight: #10b981;
+            --tooltip-bg: #333;
+        }
+
+        .dark-mode {
+            --bg-color: #18191a;
+            --card-bg: #242526;
+            --text-color: #e4e6eb;
+            --accent: #3b82f6;
+            --secondary-text: #b0b3b8;
+            --border: #3e4042;
+            --highlight: #34d399;
+            --tooltip-bg: #555;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .container { max-width: 1200px; margin: auto; }
+
+        .disclaimer {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #ffeeba;
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 25px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .sidebar { order: -1; }
+        }
+
+        .sidebar { position: sticky; top: 20px; }
+        
+        .result-card {
+            background: var(--accent);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.95rem;
+        }
+
+        .total-val { font-size: 2.2rem; font-weight: bold; margin: 15px 0; text-align: center; }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title { margin-top: 0; font-size: 1.1rem; border-left: 4px solid var(--accent); padding-left: 10px; margin-bottom: 15px;}
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        
+        label { display: flex; align-items: center; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--secondary-text); }
+        input, select {
+            width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border);
+            background: var(--card-bg); color: var(--text-color); font-size: 1rem; box-sizing: border-box;
+        }
+
+        .investment-desc {
+            font-size: 0.85rem;
+            color: var(--secondary-text);
+            margin-top: 10px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        .help-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 16px;
+            height: 16px;
+            background: var(--border);
+            color: var(--text-color);
+            border-radius: 50%;
+            font-size: 11px;
+            margin-left: 6px;
+            cursor: help;
+            position: relative;
+        }
+
+        .help-icon:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--tooltip-bg);
+            color: #fff;
+            padding: 8px;
+            border-radius: 4px;
+            width: 220px;
+            font-weight: normal;
+            font-size: 12px;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .hidden-section { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="disclaimer">
+        IMPORTANT: This tool is for educational and illustrative purposes only. Consult with a qualified financial advisor before making retirement decisions.
+    </div>
+
+    <div class="header">
+        <h1>Casa Retirement Calculator <small style="font-size: 0.5em;">2026</small></h1>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size: 0.8rem;">Dark Mode</span>
+            <label class="switch">
+                <input type="checkbox" onchange="document.body.classList.toggle('dark-mode')">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="inputs-area">
+            
+            <div class="card">
+                <h2 class="section-title">Investments & Withdrawal Rate</h2>
+                <div class="grid">
+                    <div class="input-group">
+                        <label>Initial Principal ($) <span class="help-icon" data-tooltip="Total current retirement savings.">?</span></label>
+                        <input type="number" id="principal" value="100000" oninput="calculate()">
+                    </div>
+                    <div class="input-group">
+                        <label>Contribution ($) <span class="help-icon" data-tooltip="Amount added to savings per period.">?</span></label>
+                        <input type="number" id="contrib" value="1000" oninput="calculate()">
+                    </div>
+                    <div class="input-group">
+                        <label>Contribution Frequency <span class="help-icon" data-tooltip="How often you add money.">?</span></label>
+                        <select id="freq" onchange="calculate()">
+                            <option value="12">Monthly</option>
+                            <option value="26">Bi-Weekly</option>
+                            <option value="1">Annually</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Compound Frequency <span class="help-icon" data-tooltip="How often interest is recalculated.">?</span></label>
+                        <select id="compoundFreq" onchange="calculate()">
+                            <option value="12" selected>Monthly</option>
+                            <option value="365">Daily</option>
+                            <option value="1">Annually</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Years to Grow <span class="help-icon" data-tooltip="Years until retirement.">?</span></label>
+                        <input type="number" id="years" value="20" oninput="calculate()">
+                    </div>
+                    <div class="input-group">
+                        <label>Annual Return (%) <span class="help-icon" data-tooltip="Expected yearly growth rate.">?</span></label>
+                        <input type="number" id="roi" value="7" step="0.1" oninput="calculate()">
+                    </div>
+                    <div class="input-group">
+                        <label>Withdrawal Rate (%) <span class="help-icon" data-tooltip="Percentage of nest egg spent annually. The average withdrawal rate is around 4%.">?</span></label>
+                        <input type="number" id="swr" value="4" step="0.1" oninput="calculate()">
+                    </div>
+                <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 1.10rem;">
+                    <strong>Total Nest Egg:</strong> <span id="sideNest" style="float:right;">$0</span>
+                </div>
+                </div>
+                <div class="investment-desc">
+                    Investments that leverage compounding include vehicles that reinvest earnings—interest, dividends, or capital gains—to generate returns on both the initial principal and accumulated gains. Key examples include high-yield savings accounts, Certificates of Deposit (CDs), bonds, stocks, mutual funds, and dividend reinvestment plans (DRIPs).
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="section-title">Social Security</h2>
+                <div class="grid">
+                    <div class="input-group">
+                        <label>Primary: Avg. Income ($) <span class="help-icon" data-tooltip="Estimated avg. income for top 35 years.">?</span></label>
+                        <input type="number" id="avg35" value="85000" oninput="calculate()">
+                    </div>
+                    <div class="input-group">
+                        <label>Primary: Claim Age <span class="help-icon" data-tooltip="67 is Full Retirement Age.">?</span></label>
+                        <input type="number" id="ssAge" value="67" min="62" max="70" oninput="calculate()">s
+                    </div>
+                    <div class="input-group">
+                        <label>Include Spouse?</label>
+                        <select id="ssSpouseCheck" onchange="calculate()">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="spouseGrid" class="grid" style="display:none; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+                    <div class="input-group">
+                        <label>Spouse: Avg. Income ($)</label>
+                        <input type="number" id="spouse35" value="40000" oninput="calculate()">
+                    </div>
+                    <div class="input-group">
+                        <label>Spouse: Claim Age</label>
+                        <input type="number" id="spouseClaimAge" value="67" min="62" max="70" oninput="calculate()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 class="section-title" style="margin-bottom: 0;">FERS Pension (Optional)</h2>
+                    <label class="switch">
+                        <input type="checkbox" id="fersToggle" onchange="toggleFers()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div id="fersInputs" class="hidden-section">
+                    <div class="grid">
+                        <div class="input-group">
+                            <label>High-3 Average ($) <span class="help-icon" data-tooltip="Average of highest 3 consecutive basic pay years.">?</span></label>
+                            <input type="number" id="high3" value="120000" oninput="calculate()">
+                        </div>
+                        <div class="input-group">
+                            <label>Years of Service <span class="help-icon" data-tooltip="Total federal years of service.">?</span></label>
+                            <input type="number" id="yos" value="25" oninput="calculate()">
+                        </div>
+                        <div class="input-group">
+                            <label>Retirement Age <span class="help-icon" data-tooltip="Multiplier becomes 1.1% if 62+ with 20+ years.">?</span></label>
+                            <input type="number" id="fersAge" value="62" oninput="calculate()">
+                        </div>
+                    </div>
+                    <div id="fersBonusText" style="font-size: 0.8rem; margin-top: 10px; color: var(--accent); font-weight: bold;"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="sidebar">
+            <div class="result-card">
+                <div style="text-align: center; font-size: 0.9rem; opacity: 0.9;">ESTIMATED MONTHLY TOTAL</div>
+                <div class="total-val" id="resTotal">$0</div>
+                
+                <div style="margin-top: 20px;">
+                    <div class="breakdown-item">
+                        <span>Investments</span>
+                        <span id="sideDraw">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Social Security</span>
+                        <span id="sideSS">$0</span>
+                    </div>
+                    <div class="breakdown-item" id="fersSidebarRow" style="display:none;">
+                        <span>FERS Monthly</span>
+                        <span id="sideFers">$0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleFers() {
+        const isChecked = document.getElementById('fersToggle').checked;
+        document.getElementById('fersInputs').style.display = isChecked ? 'block' : 'none';
+        document.getElementById('fersSidebarRow').style.display = isChecked ? 'flex' : 'none';
+        calculate();
+    }
+
+    function calculate() {
+        const P = parseFloat(document.getElementById('principal').value) || 0;
+        const PMT = parseFloat(document.getElementById('contrib').value) || 0;
+        const t = parseFloat(document.getElementById('years').value) || 0;
+        const r = (parseFloat(document.getElementById('roi').value) || 0) / 100;
+        const n = parseInt(document.getElementById('freq').value);
+        const m = parseInt(document.getElementById('compoundFreq').value);
+        const swr = (parseFloat(document.getElementById('swr').value) || 0) / 100;
+
+        let fv = 0;
+        if (r === 0) fv = P + (PMT * n * t);
+        else {
+            const r_m = r / m; 
+            const r_n = Math.pow(1 + r_m, m / n) - 1;
+            fv = (P * Math.pow(1 + r_m, m * t)) + (PMT * (Math.pow(1 + r_n, n * t) - 1) / r_n);
+        }
+        const monthlyDraw = (fv * swr) / 12;
+
+        let fersMonthly = 0;
+        if (document.getElementById('fersToggle').checked) {
+            const h3 = parseFloat(document.getElementById('high3').value) || 0;
+            const yos = parseFloat(document.getElementById('yos').value) || 0;
+            const fersAge = parseFloat(document.getElementById('fersAge').value) || 0;
+            let mult = (fersAge >= 62 && yos >= 20) ? 0.011 : 0.01;
+            fersMonthly = (h3 * yos * mult) / 12;
+            document.getElementById('fersBonusText').innerText = (mult === 0.011) ? "✓ 1.1% Multiplier Applied" : "Standard 1.0% Multiplier Applied";
+        }
+
+        function getPIA(annual) {
+            const aime = annual / 12;
+            if (aime <= 1286) return aime * 0.9;
+            if (aime <= 7749) return 1157.4 + ((aime - 1286) * 0.32);
+            return 3225.56 + ((aime - 7749) * 0.15);
+        }
+
+        function adjustAge(pia, age, isSpousal) {
+            const diff = (67 - age) * 12;
+            let f = 1.0;
+            if (diff > 0) {
+                const m36 = Math.min(diff, 36); const mX = Math.max(0, diff - 36);
+                if (isSpousal) f -= (m36 * (25/3600)) + (mX * (5/1200));
+                else f -= (m36 * (5/900)) + (mX * (5/1200));
+            } else if (diff < 0 && !isSpousal) f += (Math.abs(diff) * (2/300));
+            return pia * f;
+        }
+
+        const primaryPIA = getPIA(parseFloat(document.getElementById('avg35').value) || 0);
+        const primarySS = adjustAge(primaryPIA, parseFloat(document.getElementById('ssAge').value), false);
+        let spouseSS = 0;
+        if (document.getElementById('ssSpouseCheck').value === 'yes') {
+            document.getElementById('spouseGrid').style.display = 'grid';
+            const sInc = parseFloat(document.getElementById('spouse35').value) || 0;
+            const sAge = parseFloat(document.getElementById('spouseClaimAge').value) || 67;
+            spouseSS = Math.max(adjustAge(getPIA(sInc), sAge, false), adjustAge(primaryPIA * 0.5, sAge, true));
+        } else {
+            document.getElementById('spouseGrid').style.display = 'none';
+        }
+
+        const totalSS = primarySS + spouseSS;
+        document.getElementById('sideDraw').innerText = fmt(monthlyDraw);
+        document.getElementById('sideFers').innerText = fmt(fersMonthly);
+        document.getElementById('sideSS').innerText = fmt(totalSS);
+        document.getElementById('sideNest').innerText = fmt(fv);
+        document.getElementById('resTotal').innerText = fmt(monthlyDraw + fersMonthly + totalSS);
+    }
+
+    function fmt(val) { return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val); }
+    calculate();
+</script>
+</body>
+</html>
